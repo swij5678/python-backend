@@ -4,23 +4,53 @@ metadata:
   name: python-service
   description: A sample Python microservice with FastAPI
   annotations:
-    github.com/project-slug: your-org/python-service
+    github.com/project-slug: swij5678/python-backend
     backstage.io/techdocs-ref: dir:.
+    github.com/workflows: |
+      - ci.yml: Continuous Integration pipeline with testing, linting, security scans
+      - cd.yml: Continuous Deployment pipeline for staging and production
+      - release.yml: Automated semantic versioning and GitHub releases  
+      - security.yml: Weekly security scans and dependency updates
+      - maintenance.yml: Repository health monitoring and branch cleanup
+      - hotfix.yml: Emergency deployment workflow for critical fixes
+      - performance.yml: Comprehensive performance and load testing
+    sonarqube.org/project-key: python-service
+    prometheus.io/scrape: 'true'
+    prometheus.io/port: '8000'
+    prometheus.io/path: '/metrics'
   tags:
     - python
     - fastapi
     - microservice
     - rest-api
+    - docker
+    - kubernetes
+    - ci-cd
+    - automated-testing
+    - security-scanning
+    - performance-testing
   links:
+    - url: https://github.com/swij5678/python-backend
+      title: Source Code
+      icon: github
+    - url: https://github.com/swij5678/python-backend/actions
+      title: CI/CD Pipelines
+      icon: workflow
     - url: https://your-service-url.com
-      title: Service URL
+      title: Production Service
       icon: web
-    - url: https://your-docs-url.com
+    - url: https://staging.your-service-url.com
+      title: Staging Environment
+      icon: web
+    - url: https://swij5678.github.io/python-backend
       title: Documentation
       icon: docs
+    - url: https://your-monitoring-url.com/dashboards/python-service
+      title: Monitoring Dashboard
+      icon: dashboard
 spec:
   type: service
-  lifecycle: experimental
+  lifecycle: production
   owner: platform-team
   system: core-services
   providesApis:
@@ -28,6 +58,62 @@ spec:
   consumesApis: []
   dependsOn:
     - resource:database
+    - resource:github-actions
+  profile:
+    displayName: Python Microservice
+    email: platform@yourorg.com
+    picture: https://github.com/swij5678/python-backend/raw/main/docs/assets/service-icon.png
+  deployment:
+    environments:
+      - name: staging
+        url: https://staging.python-service.com
+      - name: production
+        url: https://python-service.com
+    containerRegistry: ghcr.io/swij5678/python-backend
+    deploymentMethod: kubernetes
+  cicd:
+    provider: github-actions
+    workflows:
+      ci:
+        name: CI Pipeline
+        trigger: [push, pull_request]
+        jobs: [lint, test, security-scan, docker-build]
+        pythonVersions: [3.9, 3.10, 3.11]
+        coverage: enabled
+        securityScanning: [safety, bandit, codeql]
+      cd:
+        name: CD Pipeline  
+        trigger: [push-main, tags]
+        environments: [staging, production]
+        deploymentStrategy: rolling
+        approvalRequired: production
+      release:
+        name: Release Management
+        trigger: [push-main, manual]
+        versioningStrategy: semantic
+        changelogGeneration: automated
+      security:
+        name: Security & Dependencies
+        schedule: weekly
+        dependencyUpdates: automated
+        vulnerabilityScanning: enabled
+      maintenance:
+        name: Repository Maintenance
+        schedule: daily
+        branchCleanup: enabled
+        staleIssueManagement: enabled
+      hotfix:
+        name: Hotfix Deployment
+        trigger: hotfix-branches
+        emergencyApproval: required
+        rollbackCapability: automated
+      performance:
+        name: Performance Testing
+        schedule: daily
+        testTypes: [smoke, load, stress, spike]
+        thresholds:
+          p95ResponseTime: 500ms
+          errorRate: <1%
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
@@ -74,3 +160,118 @@ spec:
   lifecycle: production
   owner: platform-team
   system: core-services
+---
+apiVersion: backstage.io/v1alpha1
+kind: Resource
+metadata:
+  name: github-actions
+  description: GitHub Actions CI/CD workflows for automated testing, deployment, and maintenance
+  annotations:
+    github.com/project-slug: swij5678/python-backend
+  tags:
+    - ci-cd
+    - automation
+    - github-actions
+  links:
+    - url: https://github.com/swij5678/python-backend/actions
+      title: Workflow Runs
+      icon: workflow
+    - url: https://github.com/swij5678/python-backend/actions/workflows/ci.yml
+      title: CI Pipeline
+      icon: check
+    - url: https://github.com/swij5678/python-backend/actions/workflows/cd.yml
+      title: CD Pipeline
+      icon: rocket
+    - url: https://github.com/swij5678/python-backend/actions/workflows/security.yml
+      title: Security Scans
+      icon: shield
+spec:
+  type: cicd-pipeline
+  lifecycle: production
+  owner: platform-team
+  system: core-services
+  profile:
+    workflows:
+      ci-pipeline:
+        name: CI Pipeline
+        file: .github/workflows/ci.yml
+        description: Continuous Integration with code quality, testing, and security
+        triggers: [push, pull_request]
+        jobs:
+          - Code Quality Checks (Black, isort, Flake8, MyPy)
+          - Multi-version Testing (Python 3.9, 3.10, 3.11)
+          - Security Scanning (Safety, Bandit, CodeQL)
+          - Docker Build & Test
+          - Integration Tests with PostgreSQL
+          - Performance Testing (PR only)
+        features:
+          - Code coverage reporting
+          - Dependency caching
+          - Multi-platform testing
+          - Security vulnerability detection
+      cd-pipeline:
+        name: CD Pipeline
+        file: .github/workflows/cd.yml
+        description: Continuous Deployment to staging and production
+        triggers: [push-main, tags, manual]
+        environments: [staging, production]
+        features:
+          - Multi-platform Docker builds (AMD64, ARM64)
+          - Container security scanning
+          - Automated rollback on failure
+          - GitHub Pages documentation deployment
+      release-management:
+        name: Release Management
+        file: .github/workflows/release.yml
+        description: Automated semantic versioning and GitHub releases
+        triggers: [push-main, manual]
+        features:
+          - Semantic versioning based on commits
+          - Automated changelog generation
+          - Git tagging and GitHub releases
+          - Release notifications
+      security-dependencies:
+        name: Security & Dependencies
+        file: .github/workflows/security.yml
+        description: Weekly security scans and dependency updates
+        schedule: "0 9 * * 1"  # Mondays at 9 AM UTC
+        features:
+          - Dependency vulnerability scanning
+          - Container security analysis
+          - Secret detection in code history
+          - Automated dependency update PRs
+          - License compliance checking
+      maintenance:
+        name: Branch Protection & Maintenance
+        file: .github/workflows/maintenance.yml
+        description: Repository health monitoring and maintenance
+        schedule: "0 2 * * *"  # Daily at 2 AM UTC
+        features:
+          - Branch protection rule verification
+          - PR convention enforcement
+          - Stale branch cleanup (30+ days)
+          - Issue and PR stale management
+          - Repository health reports
+      hotfix-deployment:
+        name: Hotfix Deployment
+        file: .github/workflows/hotfix.yml
+        description: Emergency deployment workflow for critical fixes
+        triggers: [hotfix-branches, manual]
+        features:
+          - Emergency approval process
+          - Fast-track testing and deployment
+          - Automatic merge back to main
+          - Rollback plan generation
+          - Stakeholder notifications
+      performance-testing:
+        name: Performance & Load Testing
+        file: .github/workflows/performance.yml
+        description: Comprehensive performance testing and monitoring
+        schedule: "0 3 * * *"  # Daily at 3 AM UTC
+        features:
+          - Multiple test types (smoke, load, stress, spike)
+          - K6-based performance testing
+          - Database performance testing
+          - System resource monitoring
+          - Performance trend analysis
+          - Automated performance reports
