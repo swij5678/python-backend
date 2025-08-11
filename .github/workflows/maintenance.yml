@@ -207,13 +207,17 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.inputs.action == 'update-branch-protection'
     permissions:
-      administration: write
+      contents: write
+      pull-requests: write
+      actions: write
     
     steps:
     - name: Update branch protection for main
       uses: actions/github-script@v6
       with:
         script: |
+          // Note: This requires admin permissions on the repository
+          // The GitHub token must have sufficient privileges to modify branch protection
           const protection = {
             required_status_checks: {
               strict: true,
