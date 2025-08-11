@@ -60,9 +60,10 @@ jobs:
       with:
         python-version: '3.11'
         
-    - name: Install bump2version
+    - name: Install dependencies
       if: steps.changes.outputs.should-release == 'true'
-      run: pip install bump2version
+      run: |
+        python -m pip install --upgrade pip
       
     - name: Get current version
       if: steps.changes.outputs.should-release == 'true'
@@ -97,7 +98,7 @@ jobs:
         
     - name: Install dependencies
       run: |
-        pip install bump2version
+        python -m pip install --upgrade pip
         
     - name: Configure Git
       run: |
@@ -129,17 +130,56 @@ jobs:
     - name: Bump version
       id: bump
       run: |
-        RELEASE_TYPE=${{ steps.release-type.outputs.type }}
-        bump2version --current-version $(grep -o 'version = "[^"]*"' pyproject.toml | cut -d'"' -f2) $RELEASE_TYPE pyproject.toml
+        RELEASE_TYPE="${{ steps.release-type.outputs.type }}"
+        CURRENT_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | cut -d'"' -f2)
+        
+        # Use Python to handle version bumping more reliably
+        python << EOF
+import re
+import sys
+
+def bump_version(version, bump_type):
+    parts = version.split('.')
+    major, minor, patch = int(parts[0]), int(parts[1]), int(parts[2])
+    
+    if bump_type == 'major':
+        major += 1
+        minor = 0
+        patch = 0
+    elif bump_type == 'minor':
+        minor += 1
+        patch = 0
+    else:  # patch
+        patch += 1
+    
+    return f"{major}.{minor}.{patch}"
+
+current_version = "$CURRENT_VERSION"
+release_type = "$RELEASE_TYPE"
+new_version = bump_version(current_version, release_type)
+
+# Update pyproject.toml
+with open('pyproject.toml', 'r') as f:
+    content = f.read()
+
+content = re.sub(r'version = "[^"]*"', f'version = "{new_version}"', content)
+
+with open('pyproject.toml', 'w') as f:
+    f.write(content)
+
+print(f"Bumped version from {current_version} to {new_version}")
+with open('$GITHUB_OUTPUT', 'a') as f:
+    f.write(f"new-version={new_version}\n")
+EOF
+        
         NEW_VERSION=$(grep -o 'version = "[^"]*"' pyproject.toml | cut -d'"' -f2)
-        echo "new-version=$NEW_VERSION" >> $GITHUB_OUTPUT
         git add pyproject.toml
         git commit -m "Bump version to $NEW_VERSION"
         git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
         
     - name: Push changes
       run: |
-        git push origin main
+        git push origin master || git push origin main
         git push origin --tags
         
     - name: Generate changelog
@@ -151,29 +191,40 @@ jobs:
         else
           CHANGELOG=$(git log --oneline --pretty=format:"* %s (%an)" $LAST_TAG..HEAD)
         fi
+        
+        # Use a delimiter to handle multiline content safely
         echo "CHANGELOG<<EOF" >> $GITHUB_ENV
         echo "$CHANGELOG" >> $GITHUB_ENV
         echo "EOF" >> $GITHUB_ENV
         
     - name: Create GitHub Release
       id: create-release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: actions/github-script@v6
       with:
-        tag_name: v${{ steps.bump.outputs.new-version }}
-        release_name: Release v${{ steps.bump.outputs.new-version }}
-        body: |
-          ## What's Changed
-          ${{ env.CHANGELOG }}
+        script: |
+          const newVersion = '${{ steps.bump.outputs.new-version }}';
+          const changelog = process.env.CHANGELOG || 'No changelog available';
           
-          ## Docker Images
-          - `ghcr.io/${{ github.repository }}:${{ steps.bump.outputs.new-version }}`
-          - `ghcr.io/${{ github.repository }}:latest`
+          const release = await github.rest.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: `v${newVersion}`,
+            name: `Release v${newVersion}`,
+            body: `## What's Changed
+${changelog}
+
+## Docker Images
+- \`ghcr.io/${{ github.repository }}:${newVersion}\`
+- \`ghcr.io/${{ github.repository }}:latest\`
+
+**Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ github.event.before }}..v${newVersion}`,
+            draft: false,
+            prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          });
           
-          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ github.event.before }}..v${{ steps.bump.outputs.new-version }}
-        draft: false
-        prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          core.setOutput('html_url', release.data.html_url);
+          core.setOutput('upload_url', release.data.upload_url);
+          return release.data.html_url;
 
   notify-release:
     name: Notify Release
@@ -183,13 +234,14 @@ jobs:
     
     steps:
     - name: Notify Slack
+      if: env.SLACK_WEBHOOK_URL != ''
       uses: 8398a7/action-slack@v3
       with:
         status: success
         text: |
           🎉 New release created!
           Version: ${{ needs.create-release.outputs.new-version }}
-          Release: ${{ needs.create-release.outputs.release-url }}
+          Release: ${{ needs.create-release.outputs.html_url }}
       env:
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         
@@ -203,7 +255,7 @@ jobs:
             title: `Update release notes for v${{ needs.create-release.outputs.new-version }}`,
             body: `Please update the release notes for version ${{ needs.create-release.outputs.new-version }}.
             
-            Release URL: ${{ needs.create-release.outputs.release-url }}
+            Release URL: ${{ needs.create-release.outputs.html_url }}
             
             - [ ] Add detailed feature descriptions
             - [ ] Add migration notes if applicable
