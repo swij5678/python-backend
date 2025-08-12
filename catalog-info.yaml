@@ -134,35 +134,15 @@ kind: API
 metadata:
   name: python-service-api
   description: REST API for the Python service
+annotations:
+    # Reference to external API specification
+    backstage.io/definition-at-location: 'url:https://github.com/swij5678/python-backend/blob/main/api-specs/openapi.yaml'
 spec:
   type: openapi
   lifecycle: experimental
   owner: platform-team
   system: core-services
-  definition: |
-    openapi: 3.0.3
-    info:
-      title: Python Service API
-      version: 1.0.0
-      description: A sample REST API built with FastAPI
-    paths:
-      /health:
-        get:
-          summary: Health check endpoint
-          responses:
-            '200':
-              description: Service is healthy
-      /api/v1/items:
-        get:
-          summary: Get all items
-          responses:
-            '200':
-              description: List of items
-        post:
-          summary: Create a new item
-          responses:
-            '201':
-              description: Item created successfully
+
 ---
 apiVersion: backstage.io/v1alpha1
 kind: Resource
