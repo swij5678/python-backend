@@ -6,6 +6,7 @@ metadata:
   annotations:
     github.com/project-slug: swij5678/python-backend
     backstage.io/techdocs-ref: dir:.
+    backstage.io/definition-at-location: 'url:https://raw.githubusercontent.com/SyscoCorporation/your-service-repo/main/api-specs/user-api.yaml'
     github.com/workflows: |
       - ci.yml: Continuous Integration pipeline with testing, linting, security scans
       - cd.yml: Continuous Deployment pipeline for staging and production
