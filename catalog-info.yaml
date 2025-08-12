@@ -134,8 +134,8 @@ kind: API
 metadata:
   name: python-service-api
   description: REST API for the Python service
-annotations:
-  backstage.io/definition-at-location: 'url:https://github.com/swij5678/python-backend/blob/main/api-specs/openapi.yaml'
+  annotations:
+    backstage.io/definition-at-location: 'url:https://github.com/swij5678/python-backend/blob/main/api-specs/openapi.yaml'
 spec:
   type: openapi
   lifecycle: experimental
