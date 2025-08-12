@@ -6,7 +6,7 @@ metadata:
   annotations:
     github.com/project-slug: swij5678/python-backend
     backstage.io/techdocs-ref: dir:.
-    backstage.io/definition-at-location: 'url:https://raw.githubusercontent.com/swij5678/python-backend/blob/master/api-specs/openapi.yaml'
+    backstage.io/definition-at-location: 'url:https://github.com/swij5678/python-backend/blob/master/api-specs/openapi.yaml'
     github.com/workflows: |
       - ci.yml: Continuous Integration pipeline with testing, linting, security scans
       - cd.yml: Continuous Deployment pipeline for staging and production
