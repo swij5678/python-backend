@@ -1,0 +1,327 @@
+openapi: 3.0.0
+info:
+  title: Python Service
+  description: A sample Python microservice with FastAPI demonstrating modern Python development practices
+  version: 1.0.0
+  contact:
+    name: Platform Team
+    email: platform@yourorg.com
+  license:
+    name: MIT
+    
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns the current health status of the service
+      operationId: healthCheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "healthy"
+                timestamp: "2025-08-11T10:30:00Z"
+                version: "1.0.0"
+                uptime: 3600
+
+  /ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check endpoint
+      description: Returns whether the service is ready to accept requests
+      operationId: readinessCheck
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ready"
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: "ok"
+                      external_api:
+                        type: string
+                        example: "ok"
+
+  /api/v1/items:
+    get:
+      tags:
+        - Items
+      summary: Get all items
+      description: Retrieve all items with optional pagination and search
+      operationId: getItems
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of items to return
+          required: false
+          schema:
+            type: integer
+            default: 100
+            minimum: 1
+            maximum: 1000
+        - name: offset
+          in: query
+          description: Number of items to skip
+          required: false
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+        - name: search
+          in: query
+          description: Search term to filter items
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Items
+      summary: Create a new item
+      description: Create a new item with the provided data
+      operationId: createItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+            example:
+              name: "Sample Item"
+              description: "This is a sample item"
+      responses:
+        '201':
+          description: Item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/v1/items/{item_id}:
+    get:
+      tags:
+        - Items
+      summary: Get item by ID
+      description: Retrieve a specific item by its ID
+      operationId: getItem
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: The ID of the item to retrieve
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Items
+      summary: Update item
+      description: Update an existing item by its ID
+      operationId: updateItem
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: The ID of the item to update
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ItemCreate'
+      responses:
+        '200':
+          description: Item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemResponse'
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Items
+      summary: Delete item
+      description: Delete an existing item by its ID
+      operationId: deleteItem
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: The ID of the item to delete
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Item deleted successfully"
+        '404':
+          description: Item not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    ItemCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The name of the item
+          example: "Sample Item"
+        description:
+          type: string
+          nullable: true
+          description: Optional description of the item
+          example: "This is a sample item"
+
+    ItemResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the item
+          example: 1
+        name:
+          type: string
+          description: The name of the item
+          example: "Sample Item"
+        description:
+          type: string
+          nullable: true
+          description: Optional description of the item
+          example: "This is a sample item"
+        created_at:
+          type: string
+          format: date-time
+          description: Timestamp when the item was created
+          example: "2025-08-11T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Timestamp when the item was last updated
+          example: "2025-08-11T10:30:00Z"
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Health status of the service
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Current timestamp
+          example: "2025-08-11T10:30:00Z"
+        version:
+          type: string
+          description: Service version
+          example: "1.0.0"
+        uptime:
+          type: integer
+          nullable: true
+          description: Service uptime in seconds
+          example: 3600
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "not_found"
+        message:
+          type: string
+          description: Error message
+          example: "Item not found"
+        detail:
+          type: string
+          description: Additional error details
+          example: "Item with ID 123 does not exist"
+
+tags:
+  - name: Health
+    description: Health and readiness endpoints
+  - name: Items
+    description: CRUD operations for items

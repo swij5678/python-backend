@@ -1,0 +1,428 @@
+{
+  "info": {
+    "name": "Python Service API",
+    "description": "Collection of API requests for the Python Service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            },
+            "description": "Check if the service is healthy"
+          },
+          "response": [
+            {
+              "name": "Healthy Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["health"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"healthy\",\n  \"timestamp\": \"2025-08-11T10:30:00Z\",\n  \"version\": \"1.0.0\",\n  \"uptime\": 3600\n}"
+            }
+          ]
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ready",
+              "host": ["{{baseUrl}}"],
+              "path": ["ready"]
+            },
+            "description": "Check if the service is ready to accept requests"
+          },
+          "response": [
+            {
+              "name": "Ready Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/ready",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["ready"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ready\",\n  \"checks\": {\n    \"database\": \"ok\",\n    \"external_api\": \"ok\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Items API",
+      "item": [
+        {
+          "name": "Get All Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items?limit=10&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
+              ]
+            },
+            "description": "Retrieve all items with pagination"
+          },
+          "response": [
+            {
+              "name": "Items List",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "[\n  {\n    \"id\": 1,\n    \"name\": \"Sample Item\",\n    \"description\": \"This is a sample item\",\n    \"created_at\": \"2025-08-11T10:00:00Z\",\n    \"updated_at\": \"2025-08-11T10:00:00Z\"\n  }\n]"
+            }
+          ]
+        },
+        {
+          "name": "Search Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items?search=sample",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items"],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "sample"
+                }
+              ]
+            },
+            "description": "Search for items containing the specified term"
+          }
+        },
+        {
+          "name": "Create Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Item\",\n  \"description\": \"This is a new item created via API\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items"]
+            },
+            "description": "Create a new item"
+          },
+          "response": [
+            {
+              "name": "Item Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New Item\",\n  \"description\": \"This is a new item\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 2,\n  \"name\": \"New Item\",\n  \"description\": \"This is a new item\",\n  \"created_at\": \"2025-08-11T10:30:00Z\",\n  \"updated_at\": \"2025-08-11T10:30:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Item by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items", "{{itemId}}"]
+            },
+            "description": "Retrieve a specific item by its ID"
+          },
+          "response": [
+            {
+              "name": "Item Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Sample Item\",\n  \"description\": \"This is a sample item\",\n  \"created_at\": \"2025-08-11T10:00:00Z\",\n  \"updated_at\": \"2025-08-11T10:00:00Z\"\n}"
+            },
+            {
+              "name": "Item Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items/999",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items", "999"]
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"detail\": \"Item not found\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Item Name\",\n  \"description\": \"This item has been updated\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items", "{{itemId}}"]
+            },
+            "description": "Update an existing item"
+          },
+          "response": [
+            {
+              "name": "Item Updated",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Item\",\n  \"description\": \"Updated description\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": 1,\n  \"name\": \"Updated Item\",\n  \"description\": \"Updated description\",\n  \"created_at\": \"2025-08-11T10:00:00Z\",\n  \"updated_at\": \"2025-08-11T10:35:00Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items", "{{itemId}}"]
+            },
+            "description": "Delete an item by its ID"
+          },
+          "response": [
+            {
+              "name": "Item Deleted",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"message\": \"Item deleted successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Error Examples",
+      "item": [
+        {
+          "name": "Validation Error Example",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Item without required name field\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/items",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "items"]
+            },
+            "description": "Example of a validation error when creating an item without required fields"
+          },
+          "response": [
+            {
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Missing name\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/v1/items",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "v1", "items"]
+                }
+              },
+              "status": "Unprocessable Entity",
+              "code": 422,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\"body\", \"name\"],\n      \"msg\": \"field required\",\n      \"type\": \"value_error.missing\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

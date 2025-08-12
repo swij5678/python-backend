@@ -1,0 +1,315 @@
+# Reusable Schema Definitions
+
+components:
+  schemas:
+    # Core Models
+    ItemCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: The name of the item
+          minLength: 1
+          maxLength: 255
+          example: "Sample Item"
+        description:
+          type: string
+          nullable: true
+          description: Optional description of the item
+          maxLength: 1000
+          example: "This is a sample item"
+
+    ItemResponse:
+      allOf:
+        - $ref: '#/components/schemas/ItemCreate'
+        - type: object
+          required:
+            - id
+            - created_at
+            - updated_at
+          properties:
+            id:
+              type: integer
+              description: Unique identifier for the item
+              example: 1
+            created_at:
+              type: string
+              format: date-time
+              description: Timestamp when the item was created
+              example: "2025-08-11T10:30:00Z"
+            updated_at:
+              type: string
+              format: date-time
+              description: Timestamp when the item was last updated
+              example: "2025-08-11T10:30:00Z"
+
+    ItemUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: The updated name of the item
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          description: Updated description of the item
+          maxLength: 1000
+
+    # Health Check Models
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+        - version
+      properties:
+        status:
+          type: string
+          description: Health status of the service
+          enum: ["healthy", "unhealthy", "degraded"]
+          example: "healthy"
+        timestamp:
+          type: string
+          format: date-time
+          description: Current timestamp
+          example: "2025-08-11T10:30:00Z"
+        version:
+          type: string
+          description: Service version
+          pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+          example: "1.0.0"
+        uptime:
+          type: integer
+          nullable: true
+          description: Service uptime in seconds
+          minimum: 0
+          example: 3600
+
+    ReadinessResponse:
+      type: object
+      required:
+        - status
+        - checks
+      properties:
+        status:
+          type: string
+          description: Overall readiness status
+          enum: ["ready", "not_ready"]
+          example: "ready"
+        checks:
+          type: object
+          description: Individual service checks
+          properties:
+            database:
+              type: string
+              enum: ["ok", "error", "timeout"]
+              example: "ok"
+            external_api:
+              type: string
+              enum: ["ok", "error", "timeout"]
+              example: "ok"
+          additionalProperties:
+            type: string
+
+    # Error Models
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "not_found"
+        message:
+          type: string
+          description: Human readable error message
+          example: "Item not found"
+        detail:
+          type: string
+          description: Additional error details
+          example: "Item with ID 123 does not exist"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2025-08-11T10:30:00Z"
+
+    ValidationError:
+      type: object
+      required:
+        - error
+        - message
+        - validation_errors
+      properties:
+        error:
+          type: string
+          enum: ["validation_error"]
+        message:
+          type: string
+          example: "Request validation failed"
+        validation_errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                description: The field that failed validation
+              message:
+                type: string
+                description: Validation error message
+              rejected_value:
+                description: The value that was rejected
+        timestamp:
+          type: string
+          format: date-time
+
+    # Pagination Models
+    PaginationMeta:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          minimum: 0
+        limit:
+          type: integer
+          description: Maximum items per page
+          minimum: 1
+        offset:
+          type: integer
+          description: Number of items skipped
+          minimum: 0
+        has_next:
+          type: boolean
+          description: Whether there are more items available
+        has_prev:
+          type: boolean
+          description: Whether there are previous items
+
+    PaginatedItemsResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemResponse'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Common Field Types
+    ID:
+      type: integer
+      description: Unique identifier
+      minimum: 1
+      example: 1
+
+    Timestamp:
+      type: string
+      format: date-time
+      description: ISO 8601 timestamp
+      example: "2025-08-11T10:30:00Z"
+
+    Version:
+      type: string
+      description: Semantic version string
+      pattern: '^[0-9]+\.[0-9]+\.[0-9]+$'
+      example: "1.0.0"
+
+  # Common Parameters
+  parameters:
+    ItemId:
+      name: item_id
+      in: path
+      required: true
+      description: The ID of the item
+      schema:
+        $ref: '#/components/schemas/ID'
+
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of items to return
+      required: false
+      schema:
+        type: integer
+        default: 100
+        minimum: 1
+        maximum: 1000
+
+    Offset:
+      name: offset
+      in: query
+      description: Number of items to skip
+      required: false
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+
+    Search:
+      name: search
+      in: query
+      description: Search term to filter items
+      required: false
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 255
+
+  # Common Responses
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "not_found"
+            message: "Item not found"
+            timestamp: "2025-08-11T10:30:00Z"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "internal_server_error"
+            message: "An internal server error occurred"
+            timestamp: "2025-08-11T10:30:00Z"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "unauthorized"
+            message: "Authentication required"
+
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "forbidden"
+            message: "Access denied"
